@@ -2,16 +2,12 @@ import finnhub
 import os
 from mcp.server.fastmcp import FastMCP 
 from datetime import datetime, timedelta
-import time
 from dotenv import load_dotenv
+import yfinance as yf
 
 load_dotenv()
 
 # --- Configuration ---
-# It's recommended to set your API key as an environment variable
-# for better security practices.
-# You can set it in your terminal like this:
-# export FINNHUB_API_KEY='your_api_key'
 FINNHUB_API_KEY = os.environ.get("FINNHUB_API_KEY")
 if not FINNHUB_API_KEY:
     raise ValueError("Please set the FINNHUB_API_KEY environment variable.")
@@ -21,11 +17,36 @@ finnhub_client = finnhub.Client(api_key=FINNHUB_API_KEY)
 # --- MCP Server Definition ---
 mcp = FastMCP("finnhub-MCP-server")
 
+# --- THIS TOOL IS NOW POWERED BY YFINANCE ---
+@mcp.tool()
+def get_stock_history(ticker: str) -> dict:
+    """
+    Fetches the last 7 days of stock price history for a given ticker using yfinance.
+    Returns a dictionary with dates and closing prices.
+    """
+    try:
+        stock = yf.Ticker(ticker)
+        # yfinance makes fetching recent history very simple
+        history = stock.history(period="7d")
+
+        if history.empty:
+            return {"error": f"No history found for ticker '{ticker}'. It may be invalid."}
+
+        # The output format (the "contract") MUST remain the same for the client.
+        history.reset_index(inplace=True)
+        dates = history['Date'].dt.strftime('%Y-%m-%d').tolist()
+        prices = history['Close'].tolist()
+        
+        return {"dates": dates, "prices": prices}
+
+    except Exception as e:
+        return {"error": str(e)}
+
+# --- THESE TOOLS STILL USE FINNHUB ---
 @mcp.tool()
 def get_latest_quote(ticker: str) -> dict:
     """
     Fetches the latest quote for a given stock ticker.
-    This includes current price, previous close, high, low, etc.
     API: finnhub_client.quote()
     """
     try:
@@ -37,14 +58,12 @@ def get_latest_quote(ticker: str) -> dict:
 def get_company_news(ticker: str) -> list:
     """
     Fetches recent company news for a given ticker.
-    Returns the most recent 3 articles.
     API: finnhub_client.company_news()
     """
     try:
         end_date = datetime.now()
-        start_date = end_date - timedelta(days=30) # Look for news in the last 30 days
+        start_date = end_date - timedelta(days=30)
         news = finnhub_client.company_news(ticker, _from=start_date.strftime("%Y-%m-%d"), to=end_date.strftime("%Y-%m-%d"))
-        # Return the top 3 most recent articles
         return news[:3]
     except Exception as e:
         return [{"error": str(e)}]
@@ -56,38 +75,10 @@ def get_recommendation_trends(ticker: str) -> list:
     API: finnhub_client.recommendation_trends()
     """
     try:
-        # This API returns a list, usually with one element containing the trends.
         trends = finnhub_client.recommendation_trends(ticker)
         return trends
     except Exception as e:
         return [{"error": str(e)}]
-
-@mcp.tool()
-def get_stock_history(ticker: str) -> dict:
-    """
-    Fetches the last 7 days of stock price history for a given ticker.
-    Returns a dictionary with dates and closing prices.
-    """
-    try:
-        print("Getting stock history for ", str)
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=7)
-        
-        # Convert to timestamps
-        end_timestamp = int(time.mktime(end_date.timetuple()))
-        start_timestamp = int(time.mktime(start_date.timetuple()))
-
-        history = finnhub_client.stock_candles(ticker, 'D', start_timestamp, end_timestamp)
-        
-        if history and 'c' in history:
-            dates = [datetime.fromtimestamp(ts).strftime('%Y-%m-%d') for ts in history['t']]
-            prices = history['c']
-            return {"dates": dates, "prices": prices}
-        else:
-            return {"error": "No history found for this ticker."}
-            
-    except Exception as e:
-        return {"error": str(e)}
 
 @mcp.tool()
 def get_earnings_reports(ticker: str) -> list:
@@ -113,5 +104,5 @@ def get_earnings_reports(ticker: str) -> list:
 
 # --- Run the server ---
 if __name__ == "__main__":
-    print("Strating finnhub MCP server")
+    print("Starting Finnhub/yfinance hybrid MCP server")
     mcp.run(transport="stdio")
