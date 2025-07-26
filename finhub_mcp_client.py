@@ -58,7 +58,7 @@ async def analyze_and_plot(ticker: str):
 
     async with AsyncExitStack() as stack:
         try:
-            server_params = StdioServerParameters(command="uv", args=["run","mcpfinhub/finhub_mcp_server.py"])
+            server_params = StdioServerParameters(command="uv", args=["run","finhub_mcp_server.py"])
             read_pipe, write_pipe = await stack.enter_async_context(stdio_client(server_params))
             session = await stack.enter_async_context(ClientSession(read_pipe, write_pipe))
             await session.initialize()
@@ -123,9 +123,9 @@ async def analyze_and_plot(ticker: str):
 
 # --- Gradio Interface ---
 with gr.Blocks(css="footer {display: none !important}") as demo:
-    gr.Markdown("# Financial Sentiment Snapshot")
+    gr.Markdown("# GenAI/week3/MCP - Investment Advisor")
     gr.Markdown("Enter a stock ticker to get a snapshot of analyst recommendations and news sentiment.")
-    
+
     with gr.Row():
         ticker_input = gr.Textbox(label="Ticker Symbol", placeholder="e.g., AAPL, TSLA")
         analyze_button = gr.Button("Analyze")

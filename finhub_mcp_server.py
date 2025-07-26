@@ -19,7 +19,7 @@ if not FINNHUB_API_KEY:
 finnhub_client = finnhub.Client(api_key=FINNHUB_API_KEY)
 
 # --- MCP Server Definition ---
-mcp = FastMCP("Week3-finance-advisor")
+mcp = FastMCP("finnhub-MCP-server")
 
 @mcp.tool()
 def get_latest_quote(ticker: str) -> dict:
