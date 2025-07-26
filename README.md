@@ -17,7 +17,7 @@ Open terminal and type these commands:
 - `source .venv/bin/activate`
 
 You’re now ready to run the MCP client and servers.
-Run client using: `uv run finhub_mcp_client.py` and click “Open in browser”.
+Run client using: `uv run mcp_client.py` and click “Open in browser”.
 
 On the new browser window that opens, use the gradio UI to communicate with your App.
 MCP inspector tool: `npx @modelcontextprotocol/inspector`
