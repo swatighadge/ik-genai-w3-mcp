@@ -48,7 +48,6 @@ def analyze_news_sentiment(news_articles: list) -> (float, list):
     return max(1, min(10, final_score)), analyzed_headlines
 
 # --- Main Application Logic ---
-
 async def analyze_and_plot(ticker: str):
     """
     Main function to call MCP tools and generate the Sentiment Snapshot.
