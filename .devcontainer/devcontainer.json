@@ -5,8 +5,5 @@
   "build": {
     "dockerfile": "../docker/Dockerfile.dev",
     "context": ".."
-  },
-
-  "workspaceMount": "type=bind,source=/workspace/IK/ik-genai-w3-mcp,target=/workspace/app",
-  "workspaceFolder": "/workspace/app"
+  }
 }
