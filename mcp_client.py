@@ -100,7 +100,7 @@ async def analyze_and_plot(ticker: str):
         return None, "Please enter a ticker symbol.", "Enter a ticker to begin."
     async with AsyncExitStack() as stack:
         try:
-            server_params = StdioServerParameters(command="python", args=["finhub_mcp_server.py"])
+            server_params = StdioServerParameters(command="python", args=["mcp_server.py"])
             read_pipe, write_pipe = await stack.enter_async_context(stdio_client(server_params))
             session = await stack.enter_async_context(ClientSession(read_pipe, write_pipe))
             await session.initialize()
