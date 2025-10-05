@@ -55,3 +55,25 @@ print(finnhub_client.stock_usa_spending("LMT", "2021-01-01", "2022-06-15"))
 print(finnhub_client.market_holiday(exchange='US'))
 print(finnhub_client.market_status(exchange='US'))
 ```
+
+@mcp.tool()
+def get_stock_history(ticker: str) -> dict:
+    """
+    Gets last 7 days of historical price for a given stock ticker.
+    API: stock = yf.Ticker(ticker)
+    """
+    try:
+        stock = yf.Ticker(ticker)
+
+        history = stock.history(period="7d")
+
+        if history.empty
+            return {"error": f"no history found for this ticker {ticker}"}
+
+        history.reset_index()
+        dates = history['Dates'].dt_strftime('%Y-%m-%d').toList()
+        prices = history['Close'].toList()
+
+        return {"dates": dates, "prices": prices}
+    except Exception as e:
+        return {"error": str(e)}
