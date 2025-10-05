@@ -3,7 +3,7 @@ import os
 from mcp.server.fastmcp import FastMCP 
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
-from yfinance import yf
+import yfinance as yf
 
 load_dotenv()
 
@@ -17,25 +17,28 @@ finnhub_client = finnhub.Client(api_key=FINNHUB_API_KEY)
 # --- MCP Server Definition ---
 mcp = FastMCP("finnhub-MCP-server")
 
+# --- THIS TOOL IS NOW POWERED BY YFINANCE ---
 @mcp.tool()
 def get_stock_history(ticker: str) -> dict:
     """
-    Gets last 7 days of historical price for a given stock ticker.
-    API: stock = yf.Ticker(ticker)
+    Fetches the last 7 days of stock price history for a given ticker using yfinance.
+    Returns a dictionary with dates and closing prices.
     """
     try:
         stock = yf.Ticker(ticker)
-
+        # yfinance makes fetching recent history very simple
         history = stock.history(period="7d")
 
-        if history.empty
-            return {"error": f"no history found for this ticker {ticker}"}
+        if history.empty:
+            return {"error": f"No history found for ticker '{ticker}'. It may be invalid."}
 
-        history.reset_index()
-        dates = history['Dates'].dt_strftime('%Y-%m-%d').toList()
-        prices = history['Close'].toList()
-
+        # The output format (the "contract") MUST remain the same for the client.
+        history.reset_index(inplace=True)
+        dates = history['Date'].dt.strftime('%Y-%m-%d').tolist()
+        prices = history['Close'].tolist()
+        
         return {"dates": dates, "prices": prices}
+
     except Exception as e:
         return {"error": str(e)}
 
